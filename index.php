@@ -2,6 +2,7 @@
 <html>
 <head>
 	<title>God E | Home</title>
+    <link rel="stylesheet" href="main.css">
 	<style type="text/css">
 		body {
 			background-color: #3C3F58;

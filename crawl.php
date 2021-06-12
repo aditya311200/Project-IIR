@@ -3,6 +3,7 @@
 <head>
 	<title>God Eye | Crawling</title>
 	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <link rel="stylesheet" href="main.css">
 	<style type="text/css">
 		body {
 			background-color: #3C3F58;
@@ -159,10 +160,10 @@
 										echo "<td>".$newsPortal."</td>";
 									echo "</tr>";
 
-									$sql = "INSERT INTO training_data (title, date, category, portal) VALUES (?,?,?,?)";
-									$stmt = $mysqli->prepare($sql);
-									$stmt->bind_param("ssss", $newsTitle, $newsDate, $newsCategory, $newsPortal);
-									$stmt->execute();
+									// $sql = "INSERT INTO training_data (title, date, category, portal) VALUES (?,?,?,?)";
+									// $stmt = $mysqli->prepare($sql);
+									// $stmt->bind_param("ssss", $newsTitle, $newsDate, $newsCategory, $newsPortal);
+									// $stmt->execute();
 
 									$counter++;
 									if ($counter > 8) { break; }
@@ -183,10 +184,10 @@
 										echo "<td>".$newsPortal."</td>";
 									echo "</tr>";
 
-									$sql = "INSERT INTO training_data (title, date, category, portal) VALUES (?,?,?,?)";
-									$stmt = $mysqli->prepare($sql);
-									$stmt->bind_param("ssss", $newsTitle, $newsDate, $newsCategory, $newsPortal);
-									$stmt->execute();
+									// $sql = "INSERT INTO training_data (title, date, category, portal) VALUES (?,?,?,?)";
+									// $stmt = $mysqli->prepare($sql);
+									// $stmt->bind_param("ssss", $newsTitle, $newsDate, $newsCategory, $newsPortal);
+									// $stmt->execute();
 
 									$counter++;
 									if ($counter > 8) { break; }

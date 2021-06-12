@@ -9,6 +9,7 @@
 <html>
 <head>
 	<title>God Eye | Classification</title>
+    <link rel="stylesheet" href="main.css">
 	<style type="text/css">
 		body {
 			background-color: #3C3F58;
@@ -180,7 +181,7 @@
 										$arr_crawling_result[] = $temp;
 
 										$counter++;
-										if ($counter > 3) { break; }
+										if ($counter > 5) { break; }
 									}
 								} else {
 									$html_2 = file_get_html("https://www.idntimes.com/search?keyword=".$keyword."&type=all&page=1");
@@ -196,7 +197,7 @@
 										$arr_crawling_result[] = $temp;
 										
 										$counter++;
-										if ($counter > 3) { break; }
+										if ($counter > 5) { break; }
 									}
 								}
 

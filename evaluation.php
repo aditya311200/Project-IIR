@@ -1,7 +1,12 @@
+<?php
+    $mysqli = new mysqli("localhost", "root", "", "db_godeye");
+?>
+
 <!DOCTYPE html>
 <html>
     <head>
         <title>God Eye | Evaluation</title>
+        <link rel="stylesheet" href="main.css">
         <style type="text/css">
             body {
                 background-color: #3C3F58;
@@ -89,7 +94,28 @@
                     </thead>
 
                     <tbody>
-                        
+                        <!-- Isi Disini -->
+                        <?php
+                            $data_amount = 0;
+                            $data_correct = 0;
+                            $result = $mysqli->query("SELECT * FROM `testing_data` WHERE queue = (SELECT max(queue) FROM testing_data)");
+
+                            while($row = $result->fetch_assoc()) {
+                                echo "<tr>";
+                                    echo "<td>".$row['title']."</td>";
+                                    echo "<td>".$row['original_category']."</td>";
+                                    echo "<td>".$row['system_classification']."</td>";
+
+                                    $data_amount++;
+                                    if ($row['original_category'] == $row['system_classification']) {
+                                        $data_correct++;
+                                        echo "<td>V</td>";
+                                    } else {
+                                        echo "<td>X</td>";
+                                    }
+                                echo "</tr>";
+                            }
+                        ?>
                     </tbody>
                 </table>
             </div>
@@ -102,23 +128,20 @@
                 <script type="text/javascript">
                     google.charts.load("current", {packages:["corechart"]});
                     google.charts.setOnLoadCallback(drawChart);
+
                     function drawChart() {
                         var data = google.visualization.arrayToDataTable([
                             ['Type', 'Percentage'],
-                            ['Correct Classification', 75],
-                            ['Wrong Classification', 25]
+                            ['Correct Classification', <?php echo (($data_correct/$data_amount)*100); ?>],
+                            ['Wrong Classification', <?php echo ((($data_amount-$data_correct)/$data_amount)*100) ?>]
                         ]);
 
-                        var options = {
-                            title: 'My Daily Activities',
-                            pieHole: 0.6,
-                        };
-
                         var chart = new google.visualization.PieChart(document.getElementById('donutchart'));
-                        chart.draw(data, options);
+                        chart.draw(data);
                     }
                 </script>
-                <div id="donutchart" style=""></div>
+
+                <div id="donutchart" style="margin-bottom: 2%"></div>
             </div>
         </main>
     </body>
