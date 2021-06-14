@@ -1,3 +1,10 @@
+<?php
+    use Phpml\FeatureExtraction\TokenCountVectorizer;
+    use Phpml\Tokenization\WhitespaceTokenizer;
+    use Phpml\FeatureExtraction\TfIdfTransformer;
+    use Phpml\Math\Distance\Minkowski;
+?>
+
 <!DOCTYPE html>
 <html>
 <head>
@@ -112,9 +119,11 @@
 		</p>
 
 		<div class="main keyword">
-			<label id="keyword">Keyword :</label> 
-			<input type="text" name="keyword">
-			<button type="submit" name="submit">Find</button>
+            <form action="" method="post">
+                <label id="keyword">Keyword :</label> 
+                <input type="text" name="keyword">
+                <button type="submit" name="submit">Find</button>
+            </form>
 		</div>
 
 		<div class="main result">
@@ -129,7 +138,61 @@
 				</thead>
 
 				<tbody>
-					
+					<?php
+                        if (isset($_POST['submit'])) {
+                            require_once __DIR__ . '/vendor/autoload.php';
+                            $mysqli = new mysqli("localhost", "root", "", "db_godeye");
+                            
+                            $training_data = array();
+                            $data_title = array();
+                            $keyword = "%".$_POST['keyword']."%";
+
+                            $sql = "SELECT * FROM training_data WHERE title LIKE ?";
+                            $stmt = $mysqli->prepare($sql);
+                            $stmt->bind_param("s", $keyword);
+                            $stmt->execute();
+                            $res = $stmt->get_result();
+
+                            while($row = $res->fetch_assoc()) {
+                                array_push($data_title, $row['title']);
+                                $temp = array("title" => $row['title'], "date" => $row['date'], "category" => $row['category'], "portal" => $row['portal']);
+                                $training_data[] = $temp;
+                            }
+
+                            // Similarity
+                            $tf = new TokenCountVectorizer(new WhitespaceTokenizer());
+                            $tf->fit($data_title);
+                            $tf->transform($data_title);
+                            $tfidf = new TfIdfTransformer($data_title);
+                            $tfidf->transform($data_title);
+
+                            $terms_amount = count($tf->getVocabulary());
+                            $data_title_amount = count($data_title) - 1;
+                            
+                            $minkowski = new Minkowski($terms_amount - 1);
+                            for ($i = 0; $i <= $data_title_amount; $i++) {
+                                $training_data[$i]['similarity'] = $minkowski->distance($data_title[$i], $data_title[$data_title_amount]);
+                            }
+
+                            $similarity_list = array_column($training_data, 'similarity');
+                            array_multisort($similarity_list, SORT_DESC, $training_data);
+                            // $i = 0;
+                            foreach ($training_data as $value) {
+                                echo "<tr>";
+                                    echo "<td>".$value['title']."</td>";
+                                    echo "<td>".$value['date']."</td>";
+                                    echo "<td>".$value['category']."</td>";
+                                    echo "<td>".$value['portal']."</td>";
+                                echo "</tr>";
+                                // $i++;
+                                // if ($i >= 3) {
+                                //     break;
+                                // }
+                            }
+
+                            // Query Expansion
+                        }
+                    ?>
 				</tbody>
 			</table>
 		</div>
