@@ -176,7 +176,7 @@
 
                             $similarity_list = array_column($training_data, 'similarity');
                             array_multisort($similarity_list, SORT_DESC, $training_data);
-                            // $i = 0;
+                            
                             foreach ($training_data as $value) {
                                 echo "<tr>";
                                     echo "<td>".$value['title']."</td>";
@@ -184,13 +184,48 @@
                                     echo "<td>".$value['category']."</td>";
                                     echo "<td>".$value['portal']."</td>";
                                 echo "</tr>";
-                                // $i++;
-                                // if ($i >= 3) {
-                                //     break;
-                                // }
                             }
 
-                            // Query Expansion
+                            if (count($training_data) > 0) {
+                                // Query Expansion
+                                $expansion_data = array();
+                                $tfidf_score_accumulation = array();
+                                $top_amount = 0;
+
+                                if ($top_amount < 3) {
+                                    $top_amount = count($training_data);
+                                } else {
+                                    $top_amount = 3;
+                                }
+                                
+
+                                for($i = 0; $i < $top_amount; $i++) {
+                                    $expansion_data[] = $training_data[$i]['title'];
+                                }
+
+                                $tf = new TokenCountVectorizer(new WhitespaceTokenizer());
+                                $tf->fit($expansion_data);
+                                $tf->transform($expansion_data);
+                                $tfidf = new TfIdfTransformer($expansion_data);
+                                $tfidf->transform($expansion_data);
+                                $term_list = $tf->getVocabulary();
+
+                                for($i = 0; $i < count($term_list); $i++) {
+                                    $tfidf_score_accumulation[$i] = 0;
+                                }
+
+                                for($i = 0; $i < count($expansion_data); $i++) {
+                                    for($j = 0; $j < count($term_list); $j++) {
+                                        $tfidf_score_accumulation[$j] += $expansion_data[$i][$j];
+                                    }
+                                }
+
+                                arsort($tfidf_score_accumulation);
+                                $highest_index = array_keys($tfidf_score_accumulation, max($tfidf_score_accumulation));
+                                $query_expasion_keyword = $term_list[$highest_index[0]];
+
+                                echo $_POST['keyword']." ".$query_expasion_keyword;
+                            }
                         }
                     ?>
 				</tbody>
