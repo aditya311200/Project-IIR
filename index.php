@@ -61,8 +61,9 @@
 		}
 
 		.table {
-			margin-top: 5%;
+			margin-top: 3%;
 			width: 100%;
+            margin-bottom: 3%;
 		}
 
 		table, tr, td {
@@ -103,6 +104,26 @@
 			cursor: pointer;
 			border: 1px solid white;
 		}
+
+        .new-keyword {
+            width: auto;
+            height: auto;
+            padding: 10px 20px;
+            border-radius: 5px;
+            font-weight: bold;
+            background: #3BBA9C;
+            color: white;
+            text-shadow: 1px 1px black;
+            margin: 0.5%;
+            border: 0;
+            outline: 0;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .new-keyword:hover {
+            background: #1EA688;
+        }
 	</style>
 </head>
 <body>
@@ -139,70 +160,68 @@
 
 				<tbody>
 					<?php
-                        if (isset($_POST['submit'])) {
+                        if (isset($_POST['keyword'])) {
                             require_once __DIR__ . '/vendor/autoload.php';
                             $mysqli = new mysqli("localhost", "root", "", "db_godeye");
-                            
                             $training_data = array();
                             $data_title = array();
                             $keyword = "%".$_POST['keyword']."%";
+                            echo "<br>Hasil pencarian dari: ".$_POST['keyword']."<br><br>";
 
+                            // Menyiapkan SQL untuk mengambil data dari database
                             $sql = "SELECT * FROM training_data WHERE title LIKE ?";
                             $stmt = $mysqli->prepare($sql);
                             $stmt->bind_param("s", $keyword);
                             $stmt->execute();
                             $res = $stmt->get_result();
 
+                            // Mendapatkan data dari hasil query database
                             while($row = $res->fetch_assoc()) {
                                 array_push($data_title, $row['title']);
                                 $temp = array("title" => $row['title'], "date" => $row['date'], "category" => $row['category'], "portal" => $row['portal']);
                                 $training_data[] = $temp;
                             }
 
-                            // Similarity
+                            // TF IDF Process
                             $tf = new TokenCountVectorizer(new WhitespaceTokenizer());
                             $tf->fit($data_title);
                             $tf->transform($data_title);
                             $tfidf = new TfIdfTransformer($data_title);
                             $tfidf->transform($data_title);
 
+                            // Mendapatkan jumlah terms untuk dilakukannya kalkulasi Minkowski Similarity dan mendapatkan jumlah dari isi array data_title setelah tfidf
                             $terms_amount = count($tf->getVocabulary());
                             $data_title_amount = count($data_title) - 1;
                             
+                            // Lakukan Minkowski Similarity
                             $minkowski = new Minkowski($terms_amount - 1);
                             for ($i = 0; $i <= $data_title_amount; $i++) {
                                 $training_data[$i]['similarity'] = $minkowski->distance($data_title[$i], $data_title[$data_title_amount]);
                             }
 
+                            // Mengurutkan hasil yang dicari berdasarkan similarity terbesar
                             $similarity_list = array_column($training_data, 'similarity');
                             array_multisort($similarity_list, SORT_DESC, $training_data);
-                            
-                            foreach ($training_data as $value) {
-                                echo "<tr>";
-                                    echo "<td>".$value['title']."</td>";
-                                    echo "<td>".$value['date']."</td>";
-                                    echo "<td>".$value['category']."</td>";
-                                    echo "<td>".$value['portal']."</td>";
-                                echo "</tr>";
-                            }
 
+                            // Jika tidak ada data yang ditemukan, tidak perlu melakukan query expansion
                             if (count($training_data) > 0) {
-                                // Query Expansion
                                 $expansion_data = array();
                                 $tfidf_score_accumulation = array();
-                                $top_amount = 0;
+                                $top_k_retrieved = 0;
 
-                                if ($top_amount < 3) {
-                                    $top_amount = count($training_data);
+                                // Menentukan Nilai Top K Retrieved
+                                if ($top_k_retrieved < 3) {
+                                    $top_k_retrieved = count($training_data);
                                 } else {
-                                    $top_amount = 3;
+                                    $top_k_retrieved = 3;
                                 }
                                 
-
-                                for($i = 0; $i < $top_amount; $i++) {
+                                // Mengisi array expansion_data dengan 3 title teratas
+                                for($i = 0; $i < $top_k_retrieved; $i++) {
                                     $expansion_data[] = $training_data[$i]['title'];
                                 }
 
+                                // TF IDF
                                 $tf = new TokenCountVectorizer(new WhitespaceTokenizer());
                                 $tf->fit($expansion_data);
                                 $tf->transform($expansion_data);
@@ -210,21 +229,51 @@
                                 $tfidf->transform($expansion_data);
                                 $term_list = $tf->getVocabulary();
 
+                                // Deklarasi bahwa isi array 1D ini dengan 0 sebanyak jumlah term yang tersedia
                                 for($i = 0; $i < count($term_list); $i++) {
                                     $tfidf_score_accumulation[$i] = 0;
                                 }
 
+                                // Lakukan akumulasi weight tiap terms nya
                                 for($i = 0; $i < count($expansion_data); $i++) {
                                     for($j = 0; $j < count($term_list); $j++) {
                                         $tfidf_score_accumulation[$j] += $expansion_data[$i][$j];
                                     }
                                 }
 
+                                // Lakukan pengurutan
                                 arsort($tfidf_score_accumulation);
-                                $highest_index = array_keys($tfidf_score_accumulation, max($tfidf_score_accumulation));
-                                $query_expasion_keyword = $term_list[$highest_index[0]];
 
-                                echo $_POST['keyword']." ".$query_expasion_keyword;
+                                $get_max_based_index = 0;
+                                foreach ($tfidf_score_accumulation as $key => $value) {
+                                    // Memastikan query expansion tidak sama dengan yang di search user
+                                    if (strtolower($_POST['keyword']) != strtolower($term_list[$key])) {
+                                        $query_expansion[] = $term_list[$key];
+                                        break;
+                                    }
+                                }
+
+                                // Menampilkan keyword tambahan berdasarkan query expansion
+                                echo "<form action='' method='post'>";
+                                echo "Related keywords: ";
+                                $explode_keyword = explode(" ", $_POST['keyword']);
+                                for($i = 0; $i <= count($explode_keyword); $i++) {
+                                    $temp = $explode_keyword;
+                                    array_splice($temp, $i, 0, $query_expansion);
+                                    $new_keyword = implode(" ", $temp);
+                                    echo "<input type='submit' name='keyword' class='new-keyword' value='".$new_keyword."'>";
+                                }
+                                echo "</form>";
+
+                                // Menampilkan hasil pada tabel secara terurut
+                                foreach ($training_data as $value) {
+                                    echo "<tr>";
+                                        echo "<td>".$value['title']."</td>";
+                                        echo "<td>".$value['date']."</td>";
+                                        echo "<td>".$value['category']."</td>";
+                                        echo "<td>".$value['portal']."</td>";
+                                    echo "</tr>";
+                                }
                             }
                         }
                     ?>

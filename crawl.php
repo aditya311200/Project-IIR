@@ -160,10 +160,10 @@
 										echo "<td>".$newsPortal."</td>";
 									echo "</tr>";
 
-									// $sql = "INSERT INTO training_data (title, date, category, portal) VALUES (?,?,?,?)";
-									// $stmt = $mysqli->prepare($sql);
-									// $stmt->bind_param("ssss", $newsTitle, $newsDate, $newsCategory, $newsPortal);
-									// $stmt->execute();
+									$sql = "INSERT INTO training_data (title, date, category, portal) VALUES (?,?,?,?)";
+									$stmt = $mysqli->prepare($sql);
+									$stmt->bind_param("ssss", $newsTitle, $newsDate, $newsCategory, $newsPortal);
+									$stmt->execute();
 
 									$counter++;
 									if ($counter > 8) { break; }
@@ -184,10 +184,10 @@
 										echo "<td>".$newsPortal."</td>";
 									echo "</tr>";
 
-									// $sql = "INSERT INTO training_data (title, date, category, portal) VALUES (?,?,?,?)";
-									// $stmt = $mysqli->prepare($sql);
-									// $stmt->bind_param("ssss", $newsTitle, $newsDate, $newsCategory, $newsPortal);
-									// $stmt->execute();
+									$sql = "INSERT INTO training_data (title, date, category, portal) VALUES (?,?,?,?)";
+									$stmt = $mysqli->prepare($sql);
+									$stmt->bind_param("ssss", $newsTitle, $newsDate, $newsCategory, $newsPortal);
+									$stmt->execute();
 
 									$counter++;
 									if ($counter > 8) { break; }
