@@ -248,6 +248,7 @@
 									$counters++;
 								}
 
+                                // Database Insert
 								$sql = "SELECT max(queue) AS 'max' FROM testing_data";
 								$res = $mysqli->query($sql);
 								$row = $res-> fetch_assoc();

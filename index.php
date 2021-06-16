@@ -166,7 +166,7 @@
                             $training_data = array();
                             $data_title = array();
                             $keyword = "%".$_POST['keyword']."%";
-                            echo "<br>Hasil pencarian dari: ".$_POST['keyword']."<br><br>";
+                            echo "<br>Result for: ".$_POST['keyword']."<br><br>";
 
                             // Menyiapkan SQL untuk mengambil data dari database
                             $sql = "SELECT * FROM training_data WHERE title LIKE ?";

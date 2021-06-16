@@ -94,7 +94,6 @@
                     </thead>
 
                     <tbody>
-                        <!-- Isi Disini -->
                         <?php
                             $data_amount = 0;
                             $data_correct = 0;
